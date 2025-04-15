@@ -1,0 +1,70 @@
+import jakarta.persistence.*;
+import org.hibernate.*;
+import org.hibernate.cfg.Configuration;
+
+@Entity
+@Table(name = "student")
+class Student {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    private String name;
+    private int age;
+
+    public Student() {}
+    public Student(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public int getAge() { return age; }
+
+    public void setName(String name) { this.name = name; }
+    public void setAge(int age) { this.age = age; }
+
+    public String toString() {
+        return "Student{id=" + id + ", name='" + name + "', age=" + age + "}";
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        SessionFactory factory = new Configuration()
+            .configure("hibernate.cfg.xml")
+            .addAnnotatedClass(Student.class)
+            .buildSessionFactory();
+
+        Session session = factory.openSession();
+
+        // CREATE
+        Transaction tx = session.beginTransaction();
+        Student s1 = new Student("Alice", 21);
+        session.save(s1);
+        tx.commit();
+        System.out.println("Saved: " + s1);
+
+        // READ
+        session = factory.openSession();
+        Student fetched = session.get(Student.class, s1.getId());
+        System.out.println("Fetched: " + fetched);
+
+        // UPDATE
+        tx = session.beginTransaction();
+        fetched.setAge(22);
+        session.update(fetched);
+        tx.commit();
+        System.out.println("Updated: " + fetched);
+
+        // DELETE
+        tx = session.beginTransaction();
+        session.delete(fetched);
+        tx.commit();
+        System.out.println("Deleted student with ID: " + fetched.getId());
+
+        session.close();
+        factory.close();
+    }
+}
